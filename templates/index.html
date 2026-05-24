@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fitness Recommendation System</title>
+    <style>
+        :root {
+            --primary-color: #2a9d8f;
+            --secondary-color: #264653;
+            --background-color: #f4f6f9;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --error-bg: #fce8e6;
+            --error-border: #d9534f;
+            --success-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-color);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 750px; /* Widened to perfectly fit tables side-by-side */
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--secondary-color);
+            margin-bottom: 25px;
+            font-size: 26px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cccccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .bmi-badge {
+            background: #e2e8f0;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--secondary-color);
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #218377;
+        }
+
+        .result-box {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--success-bg);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .result-box.error {
+            background-color: var(--error-bg);
+            border-color: var(--error-border);
+            color: #a94442;
+        }
+
+        .result-box h3 {
+            margin-top: 0;
+            color: var(--secondary-color);
+            font-size: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* --- Beautiful Table CSS Transformations --- */
+        .table-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-top: 20px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            font-size: 14px;
+            background: #ffffff;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>AI Fitness Recommender</h2>
+    <form id="predictionForm">
+        <div class="form-group">
+            <label for="age">Age (years)</label>
+            <input type="number" id="age" name="age" placeholder="e.g. 21" required min="1" max="120">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="weight">Weight (kg)</label>
+                <input type="number" id="weight" name="weight" placeholder="e.g. 73" step="0.1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="height">Height (cm)</label>
+                <input type="number" id="height" name="height" placeholder="e.g. 165" step="0.1" required>
+            </div>
+        </div>
+
+        <div class="bmi-badge" id="bmiDisplay">Calculated BMI: --</div>
+
+        <div class="form-group">
+            <label for="goal">Fitness Goal</label>
+            <select id="goal" name="goal" required>
+                <option value="" disabled selected>Select your target goal</option>
+                <option value="0">Weight Loss</option>
+                <option value="1">Muscle Gain</option>
+                <option value="2">Endurance</option>
+            </select>
+        </div>
+
+        <button type="submit" id="submitBtn">Get Detailed Blueprint</button>
+    </form>
+
+    <div class="result-box" id="resultBox">
+        <h3>Your Personalized Blueprint</h3>
+        <div id="tableContainer"></div>
+    </div>
+</div>
+
+<script>
+    const weightInput = document.getElementById('weight');
+    const heightInput = document.getElementById('height');
+    const bmiDisplay = document.getElementById('bmiDisplay');
+    let calculatedBmi = 0;
+
+    function updateBMI() {
+        const weight = parseFloat(weightInput.value);
+        const height = parseFloat(heightInput.value);
+
+        if (weight > 0 && height > 0) {
+            const heightInMeters = height / 100;
+            calculatedBmi = (weight / (heightInMeters * heightInMeters)).toFixed(1);
+            bmiDisplay.innerText = `Calculated BMI: ${calculatedBmi}`;
+        } else {
+            bmiDisplay.innerText = `Calculated BMI: --`;
+            calculatedBmi = 0;
+        }
+    }
+
+    weightInput.addEventListener('input', updateBMI);
+    heightInput.addEventListener('input', updateBMI);
+
+    // Dynamic Engine to convert flat string blocks into formatted tables
+    function buildTablesFromOutput(rawText) {
+        let htmlOutput = "";
+        
+        // 1. Process Workout Section
+        if(rawText.includes("🏠")) {
+            htmlOutput += `<div class="table-title">🏠 7-Day Home Workout Routine (No Equipment)</div>`;
+            htmlOutput += `<table>
+                            <tr>
+                                <th style="width: 20%;">Day</th>
+                                <th style="width: 80%;">Routine Breakdown</th>
+                            </tr>`;
+            
+            const lines = rawText.split('\n');
+            lines.forEach(line => {
+                if(line.trim().startsWith('• Mon:') || line.trim().startsWith('• Tue:') || line.trim().startsWith('• Wed:') || 
+                   line.trim().startsWith('• Thu:') || line.trim().startsWith('• Fri:') || line.trim().startsWith('• Sat:') || line.trim().startsWith('• Sun:')) {
+                    let cleanLine = line.replace('• ', '');
+                    let splitIdx = cleanLine.indexOf(':');
+                    let day = cleanLine.substring(0, splitIdx).trim();
+                    let details = cleanLine.substring(splitIdx + 1).trim();
+                    htmlOutput += `<tr><td><b>${day}</b></td><td>${details}</td></tr>`;
+                }
+            });
+            htmlOutput += `</table>`;
+        }
+
+        // 2. Process Diet Plan Section
+        if(rawText.includes("🥗")) {
+            htmlOutput += `<div class="table-title">🥗 Weekly Caloric Deficit Nutrition Matrix</div>`;
+            htmlOutput += `<table>
+                            <tr>
+                                <th style="width: 15%;">Days</th>
+                                <th style="width: 22%;">Breakfast</th>
+                                <th style="width: 22%;">Lunch</th>
+                                <th style="width: 19%;">Snack</th>
+                                <th style="width: 22%;">Dinner</th>
+                            </tr>`;
+            
+            // Extract groupings manually using structured key markers
+            const segments = rawText.split('• ');
+            let mW_B = "", mW_L = "", mW_S = "", mW_D = "";
+            let th_B = "", th_L = "", th_S = "", th_D = "";
+            let fs_B = "", fs_L = "", fs_S = "", fs_D = "";
+            let su_B = "", su_L = "", su_S = "", su_D = "";
+
+            segments.forEach(seg => {
+                if(seg.startsWith("Mon-Wed:")) {
+                    let items = seg.split('-');
+                    items.forEach(i => {
+                        if(i.toLowerCase().includes("breakfast:")) mW_B = i.replace(/Breakfast:/i, "").trim();
+                        if(i.toLowerCase().includes("lunch:")) mW_L = i.replace(/Lunch:/i, "").trim();
+                        if(i.toLowerCase().includes("snack:")) mW_S = i.replace(/Snack:/i, "").trim();
+                        if(i.toLowerCase().includes("dinner:")) mW_D = i.replace(/Dinner:/i, "").trim();
+                    });
+                }
+                if(seg.startsWith("Thu")) {
+                    let items = seg.split('-');
+                    items.forEach(i => {
+                        if(i.toLowerCase().includes("breakfast:")) th_B = i.replace(/Breakfast:/i, "").trim();
+                        if(i.toLowerCase().includes("lunch:")) th_L = i.replace(/Lunch:/i, "").trim();
+                        if(i.toLowerCase().includes("snack:")) th_S = i.replace(/Snack:/i, "").trim();
+                        if(i.toLowerCase().includes("dinner:")) th_D = i.replace(/Dinner:/i, "").trim();
+                    });
+                }
+                if(seg.startsWith("Fri-Sat:")) {
+                    let items = seg.split('-');
+                    items.forEach(i => {
+                        if(i.toLowerCase().includes("breakfast:")) fs_B = i.replace(/Breakfast:/i, "").trim();
+                        if(i.toLowerCase().includes("lunch:")) fs_L = i.replace(/Lunch:/i, "").trim();
+                        if(i.toLowerCase().includes("snack:")) fs_S = i.replace(/Snack:/i, "").trim();
+                        if(i.toLowerCase().includes("dinner:")) fs_D = i.replace(/Dinner:/i, "").trim();
+                    });
+                }
+                if(seg.startsWith("Sun:")) {
+                    let items = seg.split('-');
+                    items.forEach(i => {
+                        if(i.toLowerCase().includes("breakfast:")) su_B = i.replace(/Breakfast:/i, "").trim();
+                        if(i.toLowerCase().includes("lunch:")) su_L = i.replace(/Lunch:/i, "").trim();
+                        if(i.toLowerCase().includes("snack:")) su_S = i.replace(/Snack:/i, "").trim();
+                        if(i.toLowerCase().includes("dinner:")) su_D = i.replace(/Dinner:/i, "").trim();
+                    });
+                }
+            });
+
+            htmlOutput += `<tr><td><b>Mon - Wed</b></td><td>${mW_B}</td><td>${mW_L}</td><td>${mW_S}</td><td>${mW_D}</td></tr>`;
+            htmlOutput += `<tr><td><b>Thursday</b> <br><small style="color:#e53e3e;">(Low Carb)</small></td><td>${th_B}</td><td>${th_L}</td><td>${th_S}</td><td>${th_D}</td></tr>`;
+            htmlOutput += `<tr><td><b>Fri - Sat</b></td><td>${fs_B}</td><td>${fs_L}</td><td>${fs_S}</td><td>${fs_D}</td></tr>`;
+            htmlOutput += `<tr><td><b>Sunday</b></td><td>${su_B}</td><td>${su_L}</td><td>${su_S}</td><td>${su_D}</td></tr>`;
+            htmlOutput += `</table>`;
+        }
+
+        return htmlOutput;
+    }
+
+    document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (calculatedBmi === 0) {
+            alert("Please enter valid parameters.");
+            return;
+        }
+
+        const resultBox = document.getElementById('resultBox');
+        const tableContainer = document.getElementById('tableContainer');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Processing Tables...";
+
+        const formData = {
+            age: parseFloat(document.getElementById('age').value),
+            bmi: parseFloat(calculatedBmi),
+            goal: parseInt(document.getElementById('goal').value)
+        };
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                resultBox.classList.remove('error');
+                // Build and insert the styled tables dynamically
+                tableContainer.innerHTML = buildTablesFromOutput(data.recommendation);
+            } else {
+                resultBox.classList.add('error');
+                tableContainer.innerHTML = `<p>${data.error || "Processing failure."}</p>`;
+            }
+        } catch (error) {
+            resultBox.classList.add('error');
+            tableContainer.innerHTML = `<p>Could not establish server connection.</p>`;
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Get Detailed Blueprint";
+            resultBox.style.display = 'block';
+        }
+    });
+</script>
+
+</body>
+</html>
